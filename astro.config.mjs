@@ -26,6 +26,23 @@ import { remarkExcerpt } from "./src/plugins/remark-excerpt.js";
 import { remarkMermaid } from "./src/plugins/remark-mermaid.js";
 import { remarkReadingTime } from "./src/plugins/remark-reading-time.mjs";
 
+function markdownAttachmentCharsetMiddleware(req, res, next) {
+	if (/^\/experiments\/.*\.md(?:\?|$)/.test(req.url ?? "")) {
+		res.setHeader("Content-Type", "text/markdown; charset=utf-8");
+	}
+	next();
+}
+
+const markdownAttachmentCharset = {
+	name: "markdown-attachment-charset",
+	configureServer(server) {
+		server.middlewares.use(markdownAttachmentCharsetMiddleware);
+	},
+	configurePreviewServer(server) {
+		server.middlewares.use(markdownAttachmentCharsetMiddleware);
+	},
+};
+
 // https://astro.build/config
 export default defineConfig({
 	site: "https://mc.mimeng.top/",
@@ -180,6 +197,7 @@ export default defineConfig({
 		],
 	},
 	vite: {
+		plugins: [markdownAttachmentCharset],
 		build: {
 			rollupOptions: {
 				onwarn(warning, warn) {

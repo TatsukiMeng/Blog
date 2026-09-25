@@ -1,0 +1,11 @@
+你是一次独立的技术规划运行。针对 lorelum/lorelum Issue #214（https://github.com/lorelum/lorelum/issues/214），在当前仓库产出可评审的技术方案。遵守当前适用的 AGENTS.md 和 Skill；只读调查，不修改任何文件，不实施、不提交、不推送。最终回答直接输出完整 Markdown 方案，说明关键依据、缺失证据、取舍和验证方式。
+
+本实验明确禁止委派：不得启动 subagent、调用 spawn_agent/collaboration，不得递归启动其他 Codex 或代理。你独立完成。不要阅读本仓库的 `docs/research/issue-214-planning-handoff-experiment.md`、任何本实验 prompt/结果文件或 `/tmp/lorelum-214-*plan*.md`；这些是另一次试次的材料，不是 Issue 依据。
+
+以下是主 Agent 已经收集的决策线索，供你一次性定位证据；它不是事实权威。必须以 Issue 原文、当前合同和源码核实，有矛盾以这些来源为准，并明确指出错误线索。Issue #214 的当前阶段是定义跨 Host 通用的 ConversationPracticeLedger（名称可调整）语义、归属、宿主绑定与最小合同：一条记录只表示某 Agent 在任务会话中成功读取、可能仍相关的 Practice，不是 adopted/effective。至少覆盖 practiceId、contentDigest、title、可选 appliesWhen、来源 Pack 身份；按 hostKey + 不透明的 root conversation reference 隔离。去重/更新、并发、父子可见性、clear/resume、清理和有界保留由 CLI runtime 统一定义。Host adapter 负责可靠的会话、父子、生命周期信息和事件转换；Pack/LocalStore 继续拥有 canonical 内容和来源。不得放在 Codex Plugin 私有状态、LocalStore/Engine retrieval state 或全局“当前对话”文件。第二个真实 Host 出现前，不预建独立 workspace package。
+
+本 Issue 的明确非目标：不实现具体 Codex Hook 或其他 Host adapter；不自动 query/get/采纳，不存完整 Practice body，不做 compact 恢复，不引入本地 MCP、通用 Agent memory/workflow engine。#215 才是可验证的主 Agent 成功 get 写入，子 Agent get 默认不回流；#216 是后续 SubagentStart 的有界父候选提示；#217 的 compact 消费延后。真实 Codex PostToolUse/SubagentStart payload 是后续接入的证据门槛，不能从官方字段表、相同 session_id、cwd、transcript 或 shell 命令文本猜测一次 get 的主/子 Agent 归属。失败、取消、复杂包装或不能确认归属时应 fail closed；宿主缺少对应事件时保持能力可选。
+
+已定位的当前仓库证据：`packages/cli/src/hook/codex.ts` 仅支持 SessionStart 的 metadata-only Catalog；`packages/cli/src/main.ts` 有 Hook 原始 ABI 路由；`packages/cli/src/get/get-command.ts` 和 `result-schema.ts` 返回 canonical Practice、contentDigest、有序 sources；`docs/cli/get.md` 说明同一次 point read 一致但跨命令不 pin Store revision。`openspec/specs/agent-integration/spec.md` 规定 CLI-first、Hook 不自动 query/get、无本地 MCP；`openspec/specs/practice-read/spec.md` 定义 get 合同；`docs/plugins/codex.md` 是当前 Plugin 工作流。阅读 `packages/cli/AGENTS.md`、`docs/AGENTS.md`，按需核对相关测试和 Issue #215/#216/#217。真实 Hook payload 和清晰的主/子归属尚未在仓库中得到证明；不要声称已有自动捕获能力。当前未跟踪 `packages/cli/benchmarks/` 与任务无关，不碰。
+
+请把 Observed、Required、Proposed、Deferred 分开；给出字段来源与多来源规则、责任和最小接口、会话隔离/父子/clear-resume/TTL/并发/降级、少量真实备选、可核验验收及缺失的 Host 证据。设计性变化依仓库规则应先走 OpenSpec，本次仅输出实验草案。为了测试交接效率，优先一次集中或并行读取以上关键材料，非必要不重复广搜和预检；若线索不足或冲突，仍须额外核实，正确性高于减少调用。
